@@ -46,6 +46,7 @@ abstract class BaseFusionCase(pair: Seq[Valid[UInt]])(implicit p: Parameters)
   def destToRs1: Bool = instr1Rd === instr2Rs1
   protected def destToRs2: Bool = instr1Rd === instr2Rs2
   protected def instr2Rs1ToRs2: Bool = instr2Rs1 === instr2Rs2
+  protected def HINTinst: Bool = instr1Rd === 0.U || instr2Rd === 0.U
 
   protected def getInstrTable(pat: BitPat): List[BitPat] = {
     // Only these instructions can be fused now
@@ -415,12 +416,12 @@ class FusedLogiclsb(pair: Seq[Valid[UInt]])(implicit p: Parameters)
   // (5) def XORI               = BitPat("b?????????????????100?????0010011")
   // (6) def XOR                = BitPat("b0000000??????????100?????0110011")
   // (7) def ORC_B              = BitPat("b001010000111?????101?????0010011")
-  val logicInstrList = Seq(Instructions.ANDI, Instructions.AND, Instructions.ORI, Instructions.OR,
-    Instructions.XORI, Instructions.XOR, Instructions.ORC_B)
+  val logicInstrList = Seq(Instructions.ANDI, Instructions.AND, Instructions.ORI,
+    Instructions.OR, Instructions.XORI, Instructions.XOR, Instructions.ORC_B)
   def inst1Cond = VecInit(logicInstrList.map(_ === instr(0))).asUInt.orR
   def inst2Cond = instr(1) === Instructions.ANDI && inst2.IMM12 === 1.U
 
-  def isValid: Bool = inst1Cond && inst2Cond && withSameDest && destToRs1
+  def isValid: Bool = inst1Cond && inst2Cond && withSameDest && destToRs1 && !HINTinst
   override def fuOpType: Option[UInt => UInt] = Some(ALUOpType.logicToLsb)
 
   def fusionName: String = "logic_andi1"
