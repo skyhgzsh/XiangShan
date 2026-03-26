@@ -385,16 +385,20 @@ class SchedulerMemImp(override val wrapper: Scheduler)(implicit params: SchdBloc
   staIdx.zipWithIndex.map{ case (sta, i) => {
     io.fromDispatch.uops(sta).ready := staReady(i) && stdReady(i)
   }}
-  issueQueues.filter(iq => iq.params.StaCnt > 0).zip(staIdx).zipWithIndex.map{ case ((iq, idx),i) =>
-    iq.io.enq(i).valid := io.fromDispatch.uops(idx).valid && !io.fromDispatch.uops(idx).bits.isDropAmocasSta
-  }
+
   val staValidFromDispatch = staIdx.map(idx => io.fromDispatch.uops(idx).valid)
+  val staNotDrop = staIdx.map(idx => !io.fromDispatch.uops(idx).bits.isDropAmocasSta)
+  
   val memAddrIQs = issueQueues.filter(_.params.isMemAddrIQ)
   val stAddrIQs = issueQueues.filter(iq => iq.params.StaCnt > 0) // included in memAddrIQs
   val ldAddrIQs = issueQueues.filter(iq => iq.params.LduCnt > 0)
   val stDataIQs = issueQueues.filter(iq => iq.params.StdCnt > 0)
   val vecMemIQs = issueQueues.filter(_.params.isVecMemIQ)
   val (hyuIQs, hyuIQIdxs) = issueQueues.zipWithIndex.filter(_._1.params.HyuCnt > 0).unzip
+
+  stAddrIQs.map(_.io.enq).flatten.zipWithIndex.foreach{ case (staIQEnq, i) =>
+    staIQEnq.valid := staValidFromDispatch(i) && staNotDrop(i)
+  }
 
   println(s"[SchedulerMemImp] memAddrIQs.size: ${memAddrIQs.size}, enq.size: ${memAddrIQs.map(_.io.enq.size).sum}")
   println(s"[SchedulerMemImp] stAddrIQs.size:  ${stAddrIQs.size }, enq.size: ${stAddrIQs.map(_.io.enq.size).sum}")
