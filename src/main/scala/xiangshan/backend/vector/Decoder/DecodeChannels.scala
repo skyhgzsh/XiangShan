@@ -370,6 +370,7 @@ class DecodeChannelOutput extends Bundle {
   val src12Rev = Bool()
 
   val isJR = Bool()
+  val isMove = Bool()
 
   val exceptionII = Bool()
   val exceptionVI = Bool()
@@ -441,6 +442,7 @@ object DecodeChannelOutput {
     uop.src12Rev := vuop.src12Rev
 
     uop.isJR := false.B
+    uop.isMove := false.B
 
     uop.exceptionII := vuop.exceptionII
     uop.exceptionVI := false.B
@@ -503,6 +505,7 @@ object DecodeChannelOutput {
     uop.src12Rev := false.B
 
     uop.isJR := false.B
+    uop.isMove := false.B
 
     uop.exceptionII := vuop.illegal
     uop.exceptionVI := false.B
@@ -563,6 +566,7 @@ object DecodeChannelOutput {
     uop.src12Rev := false.B
 
     uop.isJR := suop.isJr
+    uop.isMove := suop.isMove
 
     uop.exceptionII := suop.exceptionII
     uop.exceptionVI := suop.exceptionVI
@@ -623,6 +627,7 @@ object DecodeChannelOutput {
     uop.src12Rev := false.B
 
     uop.isJR := false.B
+    uop.isMove := false.B
 
     uop.exceptionII := puop.exceptionII
     uop.exceptionVI := false.B
